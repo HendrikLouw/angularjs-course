@@ -14,55 +14,86 @@ angular.module('Todo').directive('ngEnter', function () {
     };
 });
 
-angular.module('Todo').controller('TodoCtrl', function($scope, $filter) {
+angular.module('Todo').factory('Todos', function($filter) {
+  var todos = [];
+
+  var all = function() {
+    return todos;
+  }
+
+  var completed = function() {
+    return todos.filter(function (val) { return val.completed; });
+  }
+
+  var remaining = function() {
+    return todos.filter(function (val) { return !val.completed; });
+  }
+
+  var add = function(newTodo) {
+    todos.push(newTodo);
+  }
+
+  var remove = function(todo) {
+    var index = todos.indexOf(todo);
+    if(index >= 0) {
+      todos.splice(index, 1);
+    }
+  }
+
+  var toggleAll = function(toggleAll) {
+    angular.forEach(todos, function(todo) {
+      todo.completed = toggleAll;
+    });
+  }
+
+  var clearCompleted = function() {
+    angular.forEach(completed(), function(todo) {
+      remove(todo);
+    });
+  }
+
+  return {
+    all: all,
+    completed: completed,
+    remaining: remaining,
+    add: add,
+    remove: remove,
+    toggleAll: toggleAll,
+    clearCompleted: clearCompleted
+  }
+});
+
+angular.module('Todo').controller('TodoCtrl', function($scope, $filter, Todos) {
   $scope.newTodo = '';
   $scope.filterQuery = '';
 
-  $scope.$watch('todos', function() {
-    $scope.remainingtodos = $filter('filter')($scope.todos, {completed: false});
-    $scope.completedtodos = $filter('filter')($scope.todos, {completed: true});
+  $scope.$watch('Todos.all()', function() {
+    $scope.todos = Todos.all();
   }, true);
 
-  $scope.todos = [
-    {
-      completed: true,
-      label: "Be awesome"
-    },
-    {
-      completed: false,
-      label: "Learn AngularJS"
-    },
-    {
-      completed: false,
-      label: "Rule the world!"
-    }
-  ];
+  $scope.$watch('todos', function() {
+    $scope.remainingtodos = Todos.remaining();
+    $scope.completedtodos = Todos.completed();
+  }, true);
 
   $scope.addTodo = function() {
     if($scope.newTodo == '') {
       return;
     }
-
-    $scope.todos.push({completed: false, label: $scope.newTodo})
+    Todos.add({completed: false, label: $scope.newTodo});
     $scope.newTodo = '';
   }
 
   $scope.removeTodo = function(todo) {
-    var index = $scope.todos.indexOf(todo);
-    if(index >= 0) {
-      $scope.todos.splice(index, 1);
-    }
+    Todos.remove(todo);
   }
 
   $scope.toggleAll = function(toggleAll) {
-    angular.forEach($scope.todos, function(todo) {
-      todo.completed = toggleAll;
-    });
+    Todos.toggleAll(toggleAll);
   }
 
   $scope.clearCompleted = function() {
-    $scope.todos = $scope.todos.filter(function (val) {
-					return !val.completed;
-				});
-    }
+    Todos.clearCompleted();
+  }
+
 });
