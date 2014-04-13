@@ -5,7 +5,6 @@
     "angular": "1.2.16",
     "angular-mocks": "1.2.16",
     "jasmine": "2.0",
-    "todomvc-common": "~0.1.9",
-    "angular-ui-ace": "~0.1.0"
+    "todomvc-common": "~0.1.9"
   }
 }
